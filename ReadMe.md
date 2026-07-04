@@ -1,8 +1,10 @@
 # Quiet Kit
 
-Resize images and merge PDFs — right in your browser. Nothing you open here is ever uploaded anywhere.
+**Free, offline image resizer and PDF merger — no uploads, no account, no server.**
+A privacy-first alternative to Smallpdf, iLovePDF, and TinyPNG that runs entirely in your browser.
 
 **[Try it live →](https://xropers.github.io/Quiet-Kit/)**
+*(replace with your actual GitHub Pages link once it's live)*
 
 ---
 
@@ -40,6 +42,16 @@ open index.html   # or just double-click the file
 ## Tech
 
 A single self-contained HTML file. Image resizing uses the browser's native Canvas API; zipping uses [JSZip](https://stuk.github.io/jszip/); PDF merging uses [pdf-lib](https://pdf-lib.js.org/) — both loaded from a CDN. No frameworks, no build tools, no backend.
+
+## What this replaces
+
+If you've searched for any of these, Quiet Kit does it — offline, for free:
+
+- Online image resizer / compressor without uploading files
+- Batch JPG, PNG, or WebP converter, no install
+- Free PDF merge tool with no watermark or account
+- Privacy-first alternative to Smallpdf, iLovePDF, TinyPNG, or PDF24
+- Client-side / browser-only file tools for sensitive documents
 
 ## License
 
