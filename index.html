@@ -1,0 +1,732 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Quiet Kit — offline file tools</title>
+<style>
+  :root {
+    --paper: #1A1B17;
+    --ink: #EDEAE1;
+    --ink-soft: #9C988C;
+    --sage: #86A98A;
+    --sage-deep: #7BA37F;
+    --btn-text: #14150F;
+    --clay: #E08F62;
+    --line: #34352E;
+    --panel: #232420;
+    --card: #201F1B;
+    --font-display: 'Fraunces', Georgia, serif;
+    --font-body: 'Inter', -apple-system, sans-serif;
+    --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+  }
+
+  [data-theme="light"] {
+    --paper: #FAF9F6;
+    --ink: #211F1C;
+    --ink-soft: #57534A;
+    --sage: #5C7A5E;
+    --sage-deep: #3F5941;
+    --btn-text: #FAF9F6;
+    --clay: #C1673F;
+    --line: #E4E1D8;
+    --panel: #F2F0E8;
+    --card: #FFFFFF;
+  }
+
+  html { transition: background .15s ease; }
+  body { transition: background .15s ease, color .15s ease; }
+
+  @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap');
+
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; padding: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--font-body);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .app {
+    max-width: 920px;
+    margin: 0 auto;
+    padding: 48px 24px 80px;
+  }
+
+  /* ---------- Header ---------- */
+  header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 24px;
+    margin-bottom: 40px;
+    flex-wrap: wrap;
+  }
+  .brand h1 {
+    font-family: var(--font-display);
+    font-weight: 500;
+    font-size: 32px;
+    margin: 0 0 6px;
+    letter-spacing: -0.01em;
+  }
+  .brand p {
+    margin: 0;
+    color: var(--ink-soft);
+    font-size: 14.5px;
+    max-width: 46ch;
+    line-height: 1.5;
+  }
+
+  .header-right {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-shrink: 0;
+  }
+
+  .theme-toggle {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--panel);
+    border: 1px solid var(--line);
+    color: var(--ink-soft);
+    font-family: var(--font-mono);
+    font-size: 12px;
+    border-radius: 100px;
+    padding: 8px 14px;
+    cursor: pointer;
+    transition: border-color .15s ease, color .15s ease;
+  }
+  .theme-toggle:hover { border-color: var(--sage); color: var(--ink); }
+  .theme-toggle:focus-visible { outline: 2px solid var(--sage); outline-offset: 2px; }
+
+  .status-badge {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 100px;
+    padding: 8px 14px 8px 10px;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--sage-deep);
+    white-space: nowrap;
+  }
+  .status-dot {
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: var(--sage);
+    box-shadow: 0 0 0 0 rgba(92,122,94,0.5);
+    animation: pulse 2.4s ease-out infinite;
+    flex-shrink: 0;
+  }
+  @keyframes pulse {
+    0%   { box-shadow: 0 0 0 0 rgba(92,122,94,0.45); }
+    70%  { box-shadow: 0 0 0 7px rgba(92,122,94,0); }
+    100% { box-shadow: 0 0 0 0 rgba(92,122,94,0); }
+  }
+
+  /* ---------- Tabs ---------- */
+  .tabs {
+    display: flex;
+    gap: 4px;
+    border-bottom: 1px solid var(--line);
+    margin-bottom: 32px;
+  }
+  .tab {
+    font-family: var(--font-body);
+    font-weight: 500;
+    font-size: 14.5px;
+    color: var(--ink-soft);
+    background: none;
+    border: none;
+    padding: 12px 4px;
+    margin-right: 28px;
+    cursor: pointer;
+    position: relative;
+    top: 1px;
+  }
+  .tab.active { color: var(--ink); }
+  .tab.active::after {
+    content: '';
+    position: absolute;
+    left: 0; right: 0; bottom: -1px;
+    height: 2px;
+    background: var(--sage-deep);
+  }
+  .tab:focus-visible { outline: 2px solid var(--sage); outline-offset: 3px; }
+
+  .panel { display: none; }
+  .panel.active { display: block; }
+
+  /* ---------- Dropzone ---------- */
+  .dropzone {
+    border: 1.5px dashed var(--line);
+    border-radius: 14px;
+    padding: 40px 24px;
+    text-align: center;
+    cursor: pointer;
+    background: var(--panel);
+    transition: border-color .15s ease, background .15s ease;
+  }
+  .dropzone:hover, .dropzone.drag { border-color: var(--sage); background: #EEF1EA; }
+  .dropzone .dz-title {
+    font-family: var(--font-display);
+    font-size: 19px;
+    margin: 0 0 4px;
+  }
+  .dropzone .dz-sub {
+    color: var(--ink-soft);
+    font-size: 13.5px;
+    margin: 0;
+  }
+  .dropzone input { display: none; }
+
+  /* ---------- File list ---------- */
+  .file-list { margin-top: 20px; display: flex; flex-direction: column; gap: 8px; }
+  .file-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 10px 12px;
+  }
+  .file-row.dragging { opacity: 0.4; }
+  .file-thumb {
+    width: 40px; height: 40px;
+    border-radius: 6px;
+    object-fit: cover;
+    background: var(--panel);
+    flex-shrink: 0;
+    border: 1px solid var(--line);
+  }
+  .file-icon {
+    width: 40px; height: 40px;
+    border-radius: 6px;
+    background: var(--panel);
+    border: 1px solid var(--line);
+    flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--ink-soft);
+  }
+  .file-meta { flex: 1; min-width: 0; }
+  .file-name {
+    font-size: 13.5px; font-weight: 500;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .file-sub {
+    font-family: var(--font-mono);
+    font-size: 11.5px;
+    color: var(--ink-soft);
+  }
+  .file-remove {
+    background: none; border: none; cursor: pointer;
+    color: var(--ink-soft);
+    font-size: 18px;
+    line-height: 1;
+    padding: 4px 6px;
+    border-radius: 6px;
+  }
+  .file-remove:hover { background: var(--panel); color: var(--clay); }
+  .drag-handle {
+    cursor: grab;
+    color: var(--line);
+    font-size: 14px;
+    padding: 0 2px;
+    user-select: none;
+  }
+
+  /* ---------- Controls ---------- */
+  .controls {
+    margin-top: 24px;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 16px;
+  }
+  .field label {
+    display: block;
+    font-size: 12px;
+    color: var(--ink-soft);
+    margin-bottom: 6px;
+    font-family: var(--font-mono);
+    text-transform: lowercase;
+  }
+  .field select, .field input[type="number"] {
+    width: 100%;
+    padding: 9px 10px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--card);
+    font-family: var(--font-body);
+    font-size: 13.5px;
+    color: var(--ink);
+  }
+  .field input[type="range"] { width: 100%; accent-color: var(--sage-deep); }
+  .range-value { font-family: var(--font-mono); font-size: 12px; color: var(--ink-soft); }
+
+  /* ---------- Checkbox ---------- */
+  .checkbox-row {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    margin-top: 18px;
+    font-size: 13.5px;
+    color: var(--ink-soft);
+    cursor: pointer;
+    user-select: none;
+    width: fit-content;
+  }
+  .checkbox-row input[type="checkbox"] {
+    width: 16px; height: 16px;
+    accent-color: var(--sage-deep);
+    cursor: pointer;
+  }
+
+  /* ---------- Buttons ---------- */
+  .btn-row { margin-top: 28px; display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
+  .btn {
+    font-family: var(--font-body);
+    font-weight: 600;
+    font-size: 14px;
+    padding: 12px 20px;
+    border-radius: 9px;
+    border: none;
+    cursor: pointer;
+    transition: transform .1s ease, opacity .15s ease;
+  }
+  .btn:active { transform: scale(0.98); }
+  .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+  .btn-primary { background: var(--sage-deep); color: var(--btn-text); }
+  .btn-primary:hover:not(:disabled) { background: #97BA9B; }
+  .btn-ghost {
+    background: none;
+    border: 1px solid var(--line);
+    color: var(--ink-soft);
+  }
+  .btn-ghost:hover:not(:disabled) { border-color: var(--ink-soft); color: var(--ink); }
+
+  .progress-text {
+    font-family: var(--font-mono);
+    font-size: 12.5px;
+    color: var(--sage-deep);
+  }
+
+  /* ---------- Empty state ---------- */
+  .empty-note {
+    margin-top: 14px;
+    font-size: 12.5px;
+    color: var(--ink-soft);
+    line-height: 1.5;
+  }
+
+  footer {
+    margin-top: 56px;
+    padding-top: 20px;
+    border-top: 1px solid var(--line);
+    font-size: 12px;
+    color: var(--ink-soft);
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .status-dot { animation: none; }
+  }
+
+  @media (max-width: 560px) {
+    header { flex-direction: column; }
+    .app { padding: 32px 16px 60px; }
+  }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <header>
+    <div class="brand">
+      <h1>Quiet Kit</h1>
+      <p>Resize images and merge PDFs, right in this tab. Nothing you open here is ever sent anywhere — close your wifi and it still works.</p>
+    </div>
+    <div class="header-right">
+      <button class="theme-toggle" id="theme-toggle" aria-label="Switch to light theme">
+        <span id="theme-icon">☀</span> <span id="theme-label">Light</span>
+      </button>
+      <div class="status-badge"><span class="status-dot"></span>running on-device</div>
+    </div>
+  </header>
+
+  <div class="tabs" role="tablist">
+    <button class="tab active" role="tab" data-panel="images">Images</button>
+    <button class="tab" role="tab" data-panel="pdfs">PDFs</button>
+  </div>
+
+  <!-- IMAGES PANEL -->
+  <section class="panel active" id="panel-images">
+    <div class="dropzone" id="img-drop">
+      <p class="dz-title">Drop images here, or click to choose</p>
+      <p class="dz-sub">JPG, PNG, or WebP · processed one by one on this device</p>
+      <input type="file" id="img-input" accept="image/*" multiple>
+    </div>
+
+    <div class="file-list" id="img-list"></div>
+
+    <div class="controls" id="img-controls" style="display:none;">
+      <div class="field">
+        <label>max width</label>
+        <input type="number" id="img-width" value="1600" min="50" step="10">
+      </div>
+      <div class="field">
+        <label>format</label>
+        <select id="img-format">
+          <option value="image/jpeg">JPG</option>
+          <option value="image/png">PNG</option>
+          <option value="image/webp">WebP</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>quality — <span class="range-value" id="img-quality-val">80%</span></label>
+        <input type="range" id="img-quality" min="10" max="100" value="80">
+      </div>
+    </div>
+
+    <label class="checkbox-row" id="img-zip-row" style="display:none;">
+      <input type="checkbox" id="img-zip" checked>
+      <span>Download as one zip file</span>
+    </label>
+
+    <div class="btn-row" id="img-actions" style="display:none;">
+      <button class="btn btn-primary" id="img-process">Process all</button>
+      <button class="btn btn-ghost" id="img-clear">Clear</button>
+      <span class="progress-text" id="img-progress"></span>
+    </div>
+  </section>
+
+  <!-- PDF PANEL -->
+  <section class="panel" id="panel-pdfs">
+    <div class="dropzone" id="pdf-drop">
+      <p class="dz-title">Drop PDFs here, or click to choose</p>
+      <p class="dz-sub">Drag the rows below to set merge order</p>
+      <input type="file" id="pdf-input" accept="application/pdf" multiple>
+    </div>
+
+    <div class="file-list" id="pdf-list"></div>
+    <p class="empty-note" id="pdf-note" style="display:none;">Drag rows by the handle on the left to reorder before merging.</p>
+
+    <div class="btn-row" id="pdf-actions" style="display:none;">
+      <button class="btn btn-primary" id="pdf-merge">Merge &amp; download</button>
+      <button class="btn btn-ghost" id="pdf-clear">Clear</button>
+      <span class="progress-text" id="pdf-progress"></span>
+    </div>
+  </section>
+
+  <footer>
+    <span>No accounts. No uploads. No tracking.</span>
+    <span>Quiet Kit</span>
+  </footer>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
+<script>
+(function(){
+  "use strict";
+
+  // ---------- Theme ----------
+  const root = document.documentElement;
+  const toggleBtn = document.getElementById('theme-toggle');
+  const themeIcon = document.getElementById('theme-icon');
+  const themeLabel = document.getElementById('theme-label');
+
+  function applyTheme(theme){
+    if (theme === 'light') {
+      root.setAttribute('data-theme', 'light');
+      themeIcon.textContent = '☾';
+      themeLabel.textContent = 'Dark';
+      toggleBtn.setAttribute('aria-label', 'Switch to dark theme');
+    } else {
+      root.removeAttribute('data-theme');
+      themeIcon.textContent = '☀';
+      themeLabel.textContent = 'Light';
+      toggleBtn.setAttribute('aria-label', 'Switch to light theme');
+    }
+  }
+
+  let savedTheme = 'dark';
+  try { savedTheme = localStorage.getItem('quiet-kit-theme') || 'dark'; } catch (e) {}
+  applyTheme(savedTheme);
+
+  toggleBtn.addEventListener('click', () => {
+    const next = root.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
+    applyTheme(next);
+    try { localStorage.setItem('quiet-kit-theme', next); } catch (e) {}
+  });
+
+  // ---------- Tabs ----------
+  const tabs = document.querySelectorAll('.tab');
+  tabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      tabs.forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+      tab.classList.add('active');
+      document.getElementById('panel-' + tab.dataset.panel).classList.add('active');
+    });
+  });
+
+  function fmtBytes(bytes){
+    if (bytes < 1024) return bytes + ' B';
+    if (bytes < 1024*1024) return (bytes/1024).toFixed(1) + ' KB';
+    return (bytes/(1024*1024)).toFixed(2) + ' MB';
+  }
+
+  function setupDropzone(zoneId, inputId, onFiles, accept){
+    const zone = document.getElementById(zoneId);
+    const input = document.getElementById(inputId);
+    zone.addEventListener('click', () => input.click());
+    input.addEventListener('change', e => onFiles(Array.from(e.target.files)));
+    ['dragenter','dragover'].forEach(evt => zone.addEventListener(evt, e => {
+      e.preventDefault(); zone.classList.add('drag');
+    }));
+    ['dragleave','drop'].forEach(evt => zone.addEventListener(evt, e => {
+      e.preventDefault(); zone.classList.remove('drag');
+    }));
+    zone.addEventListener('drop', e => {
+      const files = Array.from(e.dataTransfer.files).filter(f => !accept || f.type.match(accept));
+      onFiles(files);
+    });
+  }
+
+  // ================= IMAGES =================
+  let imgFiles = [];
+
+  function renderImgList(){
+    const list = document.getElementById('img-list');
+    list.innerHTML = '';
+    imgFiles.forEach((f, idx) => {
+      const row = document.createElement('div');
+      row.className = 'file-row';
+      const url = URL.createObjectURL(f);
+      row.innerHTML = `
+        <img class="file-thumb" src="${url}" alt="">
+        <div class="file-meta">
+          <div class="file-name">${f.name}</div>
+          <div class="file-sub">${fmtBytes(f.size)}</div>
+        </div>
+        <button class="file-remove" data-idx="${idx}" aria-label="Remove ${f.name}">&times;</button>
+      `;
+      list.appendChild(row);
+    });
+    list.querySelectorAll('.file-remove').forEach(btn => {
+      btn.addEventListener('click', () => {
+        imgFiles.splice(Number(btn.dataset.idx), 1);
+        renderImgList();
+        toggleImgControls();
+      });
+    });
+  }
+
+  function toggleImgControls(){
+    const has = imgFiles.length > 0;
+    document.getElementById('img-controls').style.display = has ? 'grid' : 'none';
+    document.getElementById('img-zip-row').style.display = has ? 'flex' : 'none';
+    document.getElementById('img-actions').style.display = has ? 'flex' : 'none';
+  }
+
+  setupDropzone('img-drop', 'img-input', files => {
+    imgFiles = imgFiles.concat(files);
+    renderImgList();
+    toggleImgControls();
+  }, /^image\//);
+
+  document.getElementById('img-quality').addEventListener('input', e => {
+    document.getElementById('img-quality-val').textContent = e.target.value + '%';
+  });
+
+  document.getElementById('img-clear').addEventListener('click', () => {
+    imgFiles = [];
+    renderImgList();
+    toggleImgControls();
+    document.getElementById('img-progress').textContent = '';
+  });
+
+  function resizeImage(file, maxWidth, mimeType, quality){
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      const url = URL.createObjectURL(file);
+      img.onload = () => {
+        let { width, height } = img;
+        if (width > maxWidth) {
+          height = Math.round(height * (maxWidth / width));
+          width = maxWidth;
+        }
+        const canvas = document.createElement('canvas');
+        canvas.width = width; canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        if (mimeType === 'image/jpeg') {
+          ctx.fillStyle = '#FFFFFF';
+          ctx.fillRect(0, 0, width, height);
+        }
+        ctx.drawImage(img, 0, 0, width, height);
+        canvas.toBlob(blob => {
+          URL.revokeObjectURL(url);
+          resolve(blob);
+        }, mimeType, quality);
+      };
+      img.onerror = reject;
+      img.src = url;
+    });
+  }
+
+  document.getElementById('img-process').addEventListener('click', async () => {
+    const btn = document.getElementById('img-process');
+    const progress = document.getElementById('img-progress');
+    const maxWidth = parseInt(document.getElementById('img-width').value, 10) || 1600;
+    const mimeType = document.getElementById('img-format').value;
+    const quality = parseInt(document.getElementById('img-quality').value, 10) / 100;
+    const ext = mimeType === 'image/jpeg' ? 'jpg' : mimeType === 'image/png' ? 'png' : 'webp';
+
+    const asZip = document.getElementById('img-zip').checked;
+    btn.disabled = true;
+
+    const processed = [];
+    for (let i = 0; i < imgFiles.length; i++) {
+      progress.textContent = `processing ${i + 1} of ${imgFiles.length}…`;
+      const blob = await resizeImage(imgFiles[i], maxWidth, mimeType, quality);
+      const base = imgFiles[i].name.replace(/\.[^.]+$/, '');
+      processed.push({ name: `${base}.${ext}`, blob });
+    }
+
+    if (asZip) {
+      progress.textContent = 'zipping…';
+      const zip = new JSZip();
+      processed.forEach(p => zip.file(p.name, p.blob));
+      const content = await zip.generateAsync({ type: 'blob' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(content);
+      a.download = 'quiet-kit-images.zip';
+      a.click();
+    } else {
+      progress.textContent = 'downloading files…';
+      for (const p of processed) {
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(p.blob);
+        a.download = p.name;
+        a.click();
+        // small gap so the browser doesn't block multiple downloads at once
+        await new Promise(r => setTimeout(r, 250));
+      }
+    }
+
+    progress.textContent = `done — ${imgFiles.length} image${imgFiles.length === 1 ? '' : 's'} exported`;
+    btn.disabled = false;
+  });
+
+  // ================= PDFs =================
+  let pdfFiles = [];
+  let dragSrcIdx = null;
+
+  function renderPdfList(){
+    const list = document.getElementById('pdf-list');
+    list.innerHTML = '';
+    pdfFiles.forEach((f, idx) => {
+      const row = document.createElement('div');
+      row.className = 'file-row';
+      row.draggable = true;
+      row.dataset.idx = idx;
+      row.innerHTML = `
+        <span class="drag-handle">⠿</span>
+        <div class="file-icon">PDF</div>
+        <div class="file-meta">
+          <div class="file-name">${f.name}</div>
+          <div class="file-sub">${fmtBytes(f.size)}</div>
+        </div>
+        <button class="file-remove" data-idx="${idx}" aria-label="Remove ${f.name}">&times;</button>
+      `;
+      row.addEventListener('dragstart', () => {
+        dragSrcIdx = idx;
+        row.classList.add('dragging');
+      });
+      row.addEventListener('dragend', () => row.classList.remove('dragging'));
+      row.addEventListener('dragover', e => e.preventDefault());
+      row.addEventListener('drop', e => {
+        e.preventDefault();
+        if (dragSrcIdx === null || dragSrcIdx === idx) return;
+        const moved = pdfFiles.splice(dragSrcIdx, 1)[0];
+        pdfFiles.splice(idx, 0, moved);
+        dragSrcIdx = null;
+        renderPdfList();
+      });
+      list.appendChild(row);
+    });
+    list.querySelectorAll('.file-remove').forEach(btn => {
+      btn.addEventListener('click', () => {
+        pdfFiles.splice(Number(btn.dataset.idx), 1);
+        renderPdfList();
+        togglePdfControls();
+      });
+    });
+  }
+
+  function togglePdfControls(){
+    const has = pdfFiles.length > 0;
+    document.getElementById('pdf-note').style.display = pdfFiles.length > 1 ? 'block' : 'none';
+    document.getElementById('pdf-actions').style.display = has ? 'flex' : 'none';
+  }
+
+  setupDropzone('pdf-drop', 'pdf-input', files => {
+    pdfFiles = pdfFiles.concat(files);
+    renderPdfList();
+    togglePdfControls();
+  }, /application\/pdf/);
+
+  document.getElementById('pdf-clear').addEventListener('click', () => {
+    pdfFiles = [];
+    renderPdfList();
+    togglePdfControls();
+    document.getElementById('pdf-progress').textContent = '';
+  });
+
+  document.getElementById('pdf-merge').addEventListener('click', async () => {
+    const btn = document.getElementById('pdf-merge');
+    const progress = document.getElementById('pdf-progress');
+    btn.disabled = true;
+
+    try {
+      const { PDFDocument } = PDFLib;
+      const merged = await PDFDocument.create();
+
+      for (let i = 0; i < pdfFiles.length; i++) {
+        progress.textContent = `reading ${i + 1} of ${pdfFiles.length}…`;
+        const bytes = await pdfFiles[i].arrayBuffer();
+        const src = await PDFDocument.load(bytes);
+        const pages = await merged.copyPages(src, src.getPageIndices());
+        pages.forEach(p => merged.addPage(p));
+      }
+
+      progress.textContent = 'finishing…';
+      const outBytes = await merged.save();
+      const blob = new Blob([outBytes], { type: 'application/pdf' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'quiet-kit-merged.pdf';
+      a.click();
+      progress.textContent = `done — ${pdfFiles.length} files merged`;
+    } catch (err) {
+      progress.textContent = 'something went wrong — check the files and try again';
+      console.error(err);
+    }
+    btn.disabled = false;
+  });
+
+})();
+</script>
+</body>
+</html>
