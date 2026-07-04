@@ -33,7 +33,7 @@ Quiet Kit does the same everyday tasks, but every bit of processing happens loca
 No build step, no dependencies to install. Just download `index.html` and open it in a browser, or clone this repo:
 
 ```bash
-git clone https://github.com/yourusername/quiet-kit.git
+git clone https://github.com/xRopers/quiet-kit.git
 cd quiet-kit
 open index.html   # or just double-click the file
 ```
