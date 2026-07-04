@@ -2,8 +2,7 @@
 
 Resize images and merge PDFs — right in your browser. Nothing you open here is ever uploaded anywhere.
 
-**[Try it live →](https://yourusername.github.io/quiet-kit/)**
-*(replace with your actual GitHub Pages link once it's live)*
+**[Try it live →](https://xRopers.github.io/quiet-kit/)**
 
 ---
 
