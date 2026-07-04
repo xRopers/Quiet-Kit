@@ -22,7 +22,7 @@ Quiet Kit does the same everyday tasks, but every bit of processing happens loca
 
 ## How to use it
 
-1. Open the [live link](https://yourusername.github.io/quiet-kit/) (or open `index.html` locally in any modern browser).
+1. Open the [live link](https://xRopers.github.io/quiet-kit/) (or open `index.html` locally in any modern browser).
 2. Pick a tab: **Images** or **PDFs**.
 3. Drag your files in, or click to choose them.
 4. Adjust the settings, then process or merge.
